@@ -19,6 +19,7 @@ import {
   quickResultSelectionModifier,
 } from "../keys";
 import type { Hotkeys, Settings } from "../settings";
+import { DEFAULT_SWITCH_HISTORY_PATH, persistSwitch } from "../switch-history";
 import { sorter } from "../utils/collection-helper";
 import {
   convertSubmatchesToCharPositions,
@@ -757,6 +758,14 @@ export class GrepModal extends AbstractSuggestionModal<SuggestionItem> {
 
     const isSameTab = leaf === "same-tab";
     const isFinalOpen = !option.keepOpen;
+
+    if (isFinalOpen) {
+      persistSwitch(
+        DEFAULT_SWITCH_HISTORY_PATH,
+        item.file.path,
+        this.settings.frequencyWindowDays,
+      );
+    }
 
     if (isFinalOpen && this.usedPreview) {
       this.skipRecentHistoryRestoreOnClose = true;

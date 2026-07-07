@@ -39,3 +39,37 @@ describe("sort (property value)", () => {
     ]);
   });
 });
+
+describe("sort (Frequently opened)", () => {
+  const withSwitchCount = (
+    path: string,
+    switchCount?: number,
+  ): SuggestionItem => ({ ...createItem(path), switchCount });
+
+  test("ranks higher switch counts first and treats missing counts as 0", () => {
+    const items = [
+      withSwitchCount("a.md"),
+      withSwitchCount("b.md", 1),
+      withSwitchCount("c.md", 5),
+    ];
+
+    const sorted = sort([...items], ["Frequently opened"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "c.md",
+      "b.md",
+      "a.md",
+    ]);
+  });
+
+  test("falls through to the next priority on tie", () => {
+    const items = [withSwitchCount("b.md", 3), withSwitchCount("a.md", 3)];
+
+    const sorted = sort([...items], ["Frequently opened", "Alphabetical"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "a.md",
+      "b.md",
+    ]);
+  });
+});

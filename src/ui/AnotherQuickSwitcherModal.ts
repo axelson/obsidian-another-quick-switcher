@@ -42,6 +42,11 @@ import {
   sort,
 } from "../sorters";
 import {
+  DEFAULT_SWITCH_HISTORY_PATH,
+  fetchSwitchCounts,
+  persistSwitch,
+} from "../switch-history";
+import {
   excludeItems,
   includeItems,
   keyBy,
@@ -131,6 +136,7 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
   originalSetSelectedItem?: (selectedIndex: number, evt?: any) => void;
 
   lastOpenFileIndexByPath: { [path: string]: number } = {};
+  switchCountByPath: { [path: string]: number } = {};
 
   // API mode properties
   private apiMode = false;
@@ -199,6 +205,15 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
 
     this.limit = this.settings.maxNumberOfSuggestions;
     this.lastOpenFileIndexByPath = this.appHelper.createRecentFilePathMap();
+    fetchSwitchCounts(
+      DEFAULT_SWITCH_HISTORY_PATH,
+      this.settings.frequencyWindowDays,
+    ).then((counts) => {
+      this.switchCountByPath = counts;
+      for (const item of this.originItems) {
+        item.switchCount = counts[item.file.path];
+      }
+    });
     this.setHotkeys();
 
     this.phantomItems = this.settings.showExistingFilesOnly
@@ -478,6 +493,7 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
           starred: x.path in starredPathMap,
           matchResults: [],
           tokens: x.basename.split(" "),
+          switchCount: this.switchCountByPath[x.path],
         };
       });
     this.logger.showDebugLog("Indexing file items: ", start);
@@ -868,6 +884,14 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
 
     const isSameTab = leafType === "same-tab";
     const isFinalOpen = !option.keepOpen;
+
+    if (isFinalOpen) {
+      persistSwitch(
+        DEFAULT_SWITCH_HISTORY_PATH,
+        fileToOpened.path,
+        this.settings.frequencyWindowDays,
+      );
+    }
 
     if (isFinalOpen && this.usedPreview) {
       this.skipRecentHistoryRestoreOnClose = true;

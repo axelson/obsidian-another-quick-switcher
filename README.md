@@ -78,6 +78,7 @@ You can use the following names as a `Sort priorities`.
 | Property match              | Matches when the query includes a property name           | 11.0.0  |
 | Length                      | Orders by file name or alias length                       | 6.0.0   |
 | Last opened                 | Orders by most recently opened                            | 6.0.0   |
+| Frequently opened           | Orders by number of times opened via this plugin within the frequency window (fork only) | -       |
 | Last modified               | Orders by most recently modified                          | 6.0.0   |
 | Star                        | Orders starred files first                                | 6.0.0   |
 | Alphabetical                | Orders by file name or alias (A-Z)                        | 6.2.0   |

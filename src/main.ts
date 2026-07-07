@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 import { merge } from "ts-deepmerge";
 import { AnotherQuickSwitcherAPI } from "./api";
 import { AppHelper } from "./app-helper";
@@ -12,6 +12,12 @@ import {
   type Hotkeys,
   type Settings,
 } from "./settings";
+import {
+  DEFAULT_SWITCH_HISTORY_PATH,
+  removePath,
+  renamePath,
+  updateSwitchHistory,
+} from "./switch-history";
 
 export default class AnotherQuickSwitcher extends Plugin {
   settings: Settings;
@@ -34,6 +40,24 @@ export default class AnotherQuickSwitcher extends Plugin {
 
     // Initialize public API
     this.api = new AnotherQuickSwitcherAPI(this.app, this.settings);
+
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        if (!(file instanceof TFile)) {
+          return;
+        }
+        updateSwitchHistory(DEFAULT_SWITCH_HISTORY_PATH, (history) =>
+          renamePath(history, oldPath, file.path),
+        );
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", (file) => {
+        updateSwitchHistory(DEFAULT_SWITCH_HISTORY_PATH, (history) =>
+          removePath(history, file.path),
+        );
+      }),
+    );
 
     if (this.appHelper.isCacheInitialized()) {
       this.reloadCommands();

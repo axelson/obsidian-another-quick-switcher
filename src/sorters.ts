@@ -8,6 +8,7 @@ export const sortPriorityList = [
   "Header match",
   "Last modified",
   "Last opened",
+  "Frequently opened",
   "Created earliest",
   "Created latest",
   "Length",
@@ -64,6 +65,7 @@ export function filterNoQueryPriorities(
     (x) =>
       [
         "Last opened",
+        "Frequently opened",
         "Last modified",
         "Created earliest",
         "Created latest",
@@ -91,6 +93,8 @@ function getComparator(
       return priorityToLastModified;
     case "Last opened":
       return priorityToLastOpened;
+    case "Frequently opened":
+      return priorityToFrequentlyOpened;
     case "Created latest":
       return priorityToCreatedLatest;
     case "Created earliest":
@@ -324,6 +328,13 @@ function priorityToLastOpened(
     (x) => lastOpenFileIndexByPath[x.file.path] ?? 999999,
     "asc",
   );
+}
+
+function priorityToFrequentlyOpened(
+  a: SuggestionItem,
+  b: SuggestionItem,
+): 0 | -1 | 1 {
+  return compare(a, b, (x) => x.switchCount ?? 0, "desc");
 }
 
 function priorityToLastModified(

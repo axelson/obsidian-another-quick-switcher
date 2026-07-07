@@ -243,6 +243,7 @@ export interface Settings {
   // Searches
   searchCommands: SearchCommand[];
   searchesExcludePrefix: string;
+  frequencyWindowDays: number;
   searchesAutoAliasTransform: {
     enabled: boolean;
     aliasPattern: string;
@@ -764,6 +765,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Searches
   searchCommands: createPreSettingSearchCommands(),
   searchesExcludePrefix: "-",
+  frequencyWindowDays: 90,
   searchesAutoAliasTransform: {
     enabled: false,
     aliasPattern: "",
@@ -1342,6 +1344,20 @@ export class AnotherQuickSwitcherSettingTab extends PluginSettingTab {
         cb.setValue(this.plugin.settings.searchesExcludePrefix).onChange(
           async (value) => {
             this.plugin.settings.searchesExcludePrefix = value;
+            await this.plugin.saveSettings();
+          },
+        );
+      });
+
+    new Setting(containerEl)
+      .setName("Frequency window (days)")
+      .setDesc(
+        'Switches within this number of days count toward the "Frequently opened" sort priority. Set to 0 to count all history.',
+      )
+      .addText((cb) => {
+        cb.setValue(String(this.plugin.settings.frequencyWindowDays)).onChange(
+          async (value) => {
+            this.plugin.settings.frequencyWindowDays = Number(value) || 0;
             await this.plugin.saveSettings();
           },
         );

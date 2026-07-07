@@ -34,6 +34,7 @@ export interface SuggestionItem {
   starred: boolean;
   tokens: string[];
   order?: number;
+  switchCount?: number;
 }
 
 export interface MatchQueryResult {

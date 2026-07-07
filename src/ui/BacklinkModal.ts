@@ -20,6 +20,7 @@ import {
 } from "../keys";
 import type { Hotkeys, Settings } from "../settings";
 import { compare } from "../sorters";
+import { DEFAULT_SWITCH_HISTORY_PATH, persistSwitch } from "../switch-history";
 import { uniqBy } from "../utils/collection-helper";
 import { Logger } from "../utils/logger";
 import { toLeafType } from "../utils/mouse";
@@ -437,6 +438,14 @@ export class BacklinkModal extends AbstractSuggestionModal<SuggestionItem> {
 
     const isSameTab = leaf === "same-tab";
     const isFinalOpen = !option.keepOpen;
+
+    if (isFinalOpen) {
+      persistSwitch(
+        DEFAULT_SWITCH_HISTORY_PATH,
+        item.file.path,
+        this.settings.frequencyWindowDays,
+      );
+    }
 
     if (isFinalOpen && this.usedPreview) {
       this.skipRecentHistoryRestoreOnClose = true;
