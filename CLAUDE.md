@@ -1,49 +1,35 @@
 # CLAUDE
 
-## コマンド
+## Commands
 
-- テスト: `bun run test`
-- リント: `bun run lint`
-- 型チェック: `bun run typecheck`
-- ビルド: `bun run build`
+- Test: `bun run test`
+- Lint: `bun run lint`
+- Type check: `bun run typecheck`
+- Build: `bun run build`
 
-## 開発手順
+## Development workflow
 
-1. 既存コードを確認し、計画する
-2. 計画の承認を得たら、実装する
-3. 一通りファイルを変更したら `bun run pre:push` を実行する
-    - 失敗したら2に戻って修正する
-4. ユーザーに動作確認を依頼する
-5. 4がOKなら、READMEを更新する
-6. コミットする
+1. Review the existing code and make a plan
+2. Once the plan is approved, implement it
+3. After making a round of file changes, run `bun run pre:push`
+    - If it fails, go back to step 2 and fix
+4. Ask the user to verify the behavior
+5. If step 4 is OK, update the README
+6. Commit
 
-## 開発で重視するポイント
+## Development priorities
 
-- **パフォーマンスを重視する**
-    - Vaultには数万ノートがある前提
-    - 計算量が増える場合は対応前後でどれくらい速度が変わるか数値を提示する
-- **デグレリスクのある対応をする場合にテストがない場合は『最小限の』ユニットテストを追加する**
+- **Prioritize performance**
+    - Assume the vault has tens of thousands of notes
+    - If computational cost increases, present numbers showing how much speed changes before and after
+- **If a change carries regression risk and has no tests, add *minimal* unit tests**
 
-## コミットメッセージ
+## Commit messages
 
-Conventional Commits 形式で英語で書く。
+Write in English.
 
-### フォーマット
-
-```
-<type>(<scope>): <description>
-```
-
-- `type`: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `build`, `ci`, `test`
-  - 破壊的変更がある場合は `feat!` のように `!` を付ける
-- `scope`: `hooks/commit-msg` の定義を参照
-- `description`: ユーザー視点で何が変わったかを簡潔に書く
-
-### description の書き方
-
-- ユーザーにとって何が変わるかを書く (実装詳細ではなく体験の変化)
-- 「〜を追加」「〜を修正」「〜に変更」のように結果を述べる
-- 内部的なリファクタリングの場合のみ実装視点で書いてよい
+- Describe what changes for the user (the change in experience, not implementation details)
+- State the outcome, like "add ~", "fix ~", "change to ~"
+- Implementation-perspective descriptions are only OK for internal refactoring
 
 @FORK.md
-
