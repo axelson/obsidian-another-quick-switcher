@@ -1,32 +1,13 @@
 import { describe, expect, test } from "@jest/globals";
-import type { TFile } from "obsidian";
 import { type SuggestionItem, stampMatchResults } from "./matcher";
+import { createSuggestionItem } from "./test-helpers/suggestion-item";
 
 const createItem = (
   path: string,
   frontMatter?: SuggestionItem["frontMatter"],
 ): SuggestionItem => {
-  const name = path.split("/").pop() ?? path;
-  const basename = name.replace(/\.[^.]+$/, "");
-  return {
-    file: {
-      path,
-      basename,
-      name,
-      extension: name.split(".").pop() ?? "",
-      stat: { mtime: 0, ctime: 0 },
-      parent: { path: path.replace(/\/[^/]+$/, "") },
-    } as unknown as TFile,
-    tags: [],
-    aliases: [],
-    headers: [],
-    links: [],
-    frontMatter,
-    matchResults: [],
-    phantom: false,
-    starred: false,
-    tokens: basename.split(" "),
-  };
+  const item = createSuggestionItem({ path, frontMatter });
+  return { ...item, tokens: item.file.basename.split(" ") };
 };
 
 const defaultOptions = {

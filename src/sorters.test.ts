@@ -1,34 +1,12 @@
 import { describe, expect, test } from "@jest/globals";
-import type { TFile } from "obsidian";
 import type { SuggestionItem } from "./matcher";
 import { sort } from "./sorters";
+import { createSuggestionItem } from "./test-helpers/suggestion-item";
 
 const createItem = (
   path: string,
   frontMatter?: SuggestionItem["frontMatter"],
-): SuggestionItem => {
-  const name = path.split("/").pop() ?? path;
-  const basename = name.replace(/\.[^.]+$/, "");
-  const extension = name.split(".").pop() ?? "";
-  return {
-    file: {
-      path,
-      basename,
-      name,
-      extension,
-      stat: { mtime: 0, ctime: 0 },
-    } as unknown as TFile,
-    tags: [],
-    aliases: [],
-    headers: [],
-    links: [],
-    frontMatter,
-    matchResults: [],
-    phantom: false,
-    starred: false,
-    tokens: [],
-  };
-};
+): SuggestionItem => createSuggestionItem({ path, frontMatter });
 
 describe("sort (property value)", () => {
   test("sorts by property value desc and keeps missing values last", () => {

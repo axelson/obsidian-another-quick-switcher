@@ -26,7 +26,7 @@
 
 ## コミットメッセージ
 
-Conventional Commits 形式で日本語で書く。
+Conventional Commits 形式で英語で書く。
 
 ### フォーマット
 
