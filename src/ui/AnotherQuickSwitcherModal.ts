@@ -58,7 +58,7 @@ import {
 } from "../utils/strings";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { FILTER, HEADER, LINK, PREVIEW, SEARCH, TAG } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 import { createElements } from "./suggestion-factory";
 
 const globalInternalStorage: {
@@ -162,6 +162,7 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
   }) {
     super(args.app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.appHelper = new AppHelper(args.app);
     this.settings = args.settings;

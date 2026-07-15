@@ -32,7 +32,7 @@ import {
 } from "../utils/strings";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { FOLDER } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 interface SuggestionItem {
   order?: number;
@@ -87,6 +87,7 @@ export class BacklinkModal extends AbstractSuggestionModal<SuggestionItem> {
   constructor(app: App, settings: Settings, initialLeaf: WorkspaceLeaf | null) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.vaultRootPath = normalizePath(
       (this.app.vault.adapter as any).basePath as string,

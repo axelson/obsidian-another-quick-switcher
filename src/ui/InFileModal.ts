@@ -19,7 +19,7 @@ import {
 import { isPresent } from "../utils/types";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { PREVIEW } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 const globalInternalStorage: {
   query: string;
@@ -68,6 +68,7 @@ export class InFileModal extends AbstractSuggestionModal<SuggestionItem> {
   constructor(app: App, settings: Settings) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.appHelper = new AppHelper(app);
     this.settings = settings;

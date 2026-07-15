@@ -5,6 +5,7 @@ import type { Hotkeys, MoveFolderSortPriority, Settings } from "../settings";
 import { excludeItems } from "../utils/collection-helper";
 import { smartIncludes, smartMicroFuzzy } from "../utils/strings";
 import { FOLDER } from "./icons";
+import { addMobileDismissButton } from "./modal";
 import type { UnsafeModalInterface } from "./UnsafeModalInterface";
 
 /**
@@ -252,6 +253,7 @@ export class MoveModal extends SuggestModal<SuggestionItem> {
   constructor(app: App, settings: Settings) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.appHelper = new AppHelper(app);
     this.settings = settings;

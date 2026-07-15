@@ -43,7 +43,7 @@ import {
 } from "../utils/strings";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { FOLDER } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 const globalInternalStorage: {
   items: SuggestionItem[];
@@ -136,6 +136,7 @@ export class GrepModal extends AbstractSuggestionModal<SuggestionItem> {
   ) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.suggestions = globalInternalStorage.items;
     this.vaultRootPath = normalizePath(

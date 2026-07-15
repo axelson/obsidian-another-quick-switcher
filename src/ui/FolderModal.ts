@@ -5,6 +5,7 @@ import type { Hotkeys, Settings } from "../settings";
 import { sorter } from "../utils/collection-helper";
 import { smartIncludes, smartStartsWith } from "../utils/strings";
 import { FOLDER } from "./icons";
+import { addMobileDismissButton } from "./modal";
 import type { UnsafeModalInterface } from "./UnsafeModalInterface";
 
 interface SuggestionItem {
@@ -100,6 +101,7 @@ export class FolderModal extends SuggestModal<SuggestionItem> {
   constructor(app: App, settings: Settings) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.appHelper = new AppHelper(app);
     this.settings = settings;

@@ -1,4 +1,45 @@
+import { Platform, type SuggestModal } from "obsidian";
 import type { AppHelper } from "../app-helper";
+import { CROSS } from "./icons";
+
+/**
+ * Adds a small button at the left edge of the input on mobile, which clears
+ * the query, or closes the modal when the query is already empty (the same
+ * behavior as the dismiss button of the core Quick switcher). Mobile has no
+ * ESC key, so Obsidian soft-locks when a picker shows no results without it.
+ * https://github.com/tadashi-aikawa/obsidian-another-quick-switcher/issues/331
+ */
+export function addMobileDismissButton(modal: SuggestModal<unknown>): void {
+  if (!Platform.isMobile) {
+    return;
+  }
+
+  modal.modalEl.addClass("another-quick-switcher__mobile-dismissable");
+
+  const buttonEl = createEl("button", {
+    // clickable-icon exempts it from the `.is-tablet button:not(.clickable-icon)`
+    // padding of Obsidian core and gives it the standard icon-button look
+    cls: ["another-quick-switcher__mobile-dismiss-button", "clickable-icon"],
+    attr: { type: "button", "aria-label": "Clear input or dismiss" },
+  });
+  buttonEl.insertAdjacentHTML("beforeend", CROSS);
+  buttonEl.addEventListener("click", () => {
+    // GrepModal replaces the visible input with a clone of inputEl,
+    // so look up the live element instead of using modal.inputEl directly
+    const inputEl =
+      modal.modalEl.querySelector<HTMLInputElement>("input.prompt-input") ??
+      modal.inputEl;
+    if (inputEl.value === "") {
+      modal.close();
+      return;
+    }
+    inputEl.value = "";
+    inputEl.dispatchEvent(new Event("input"));
+    inputEl.focus();
+  });
+
+  (modal.inputEl.parentElement ?? modal.modalEl).appendChild(buttonEl);
+}
 
 type SetFloatingModalOption = {
   allowNonMarkdownReposition?: boolean;

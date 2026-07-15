@@ -1,5 +1,19 @@
-import { afterEach, beforeEach, describe, expect, test } from "@jest/globals";
-import { setFloatingModal } from "./modal";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+
+// obsidianパッケージは型定義のみでランタイム実装がないため、
+// modal.tsのimport(Platform)を解決できるよう仮想モックを与える
+jest.mock("obsidian", () => ({ Platform: { isMobile: false } }), {
+  virtual: true,
+});
+
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 type Rect = {
   x: number;
@@ -158,5 +172,201 @@ describe("setFloatingModal", () => {
       "another-quick-switcher__floating-modal-bg",
     );
     expect(prompt.classes).toContain("another-quick-switcher__floating-prompt");
+  });
+});
+
+type FakeButtonEl = {
+  tag: string;
+  classes: string[];
+  attrs: Record<string, string>;
+  htmls: string[];
+  listeners: Record<string, () => void>;
+  insertAdjacentHTML(position: string, html: string): void;
+  addEventListener(type: string, listener: () => void): void;
+};
+
+function createDismissFixture(option: { initialInputValue?: string } = {}) {
+  const createdEls: FakeButtonEl[] = [];
+  (globalThis as any).createEl = (
+    tag: string,
+    o?: {
+      cls?: string | string[];
+      attr?: Record<string, string>;
+    },
+  ) => {
+    const el: FakeButtonEl = {
+      tag,
+      classes: o?.cls ? (Array.isArray(o.cls) ? o.cls : [o.cls]) : [],
+      attrs: o?.attr ?? {},
+      htmls: [],
+      listeners: {},
+      insertAdjacentHTML(_position: string, html: string) {
+        this.htmls.push(html);
+      },
+      addEventListener(type: string, listener: () => void) {
+        this.listeners[type] = listener;
+      },
+    };
+    createdEls.push(el);
+    return el;
+  };
+
+  const inputContainer = {
+    children: [] as unknown[],
+    appendChild(node: unknown) {
+      this.children.push(node);
+    },
+  };
+  const dispatchedEvents: string[] = [];
+  let focusedCount = 0;
+  // GrepModalではmodal.inputElがDOM上のクローンに差し替えられるため、
+  // 「見えているinput」と「modal.inputElに残る古いinput」を別オブジェクトにして
+  // クリック処理が前者を操作することを検証できるようにする
+  const visibleInputEl = {
+    value: option.initialInputValue ?? "",
+    dispatchEvent(evt: Event) {
+      dispatchedEvents.push(evt.type);
+    },
+    focus() {
+      focusedCount++;
+    },
+  };
+  const staleInputEl = {
+    value: "stale",
+    parentElement: inputContainer,
+    dispatchEvent() {
+      throw new Error("stale inputEl must not be used");
+    },
+    focus() {
+      throw new Error("stale inputEl must not be used");
+    },
+  };
+  const modalEl = {
+    classes: [] as string[],
+    children: [] as unknown[],
+    addClass(cls: string) {
+      this.classes.push(cls);
+    },
+    appendChild(node: unknown) {
+      this.children.push(node);
+    },
+    querySelector(selector: string) {
+      return selector === "input.prompt-input" ? visibleInputEl : null;
+    },
+  };
+  let closedCount = 0;
+  const modal = {
+    modalEl,
+    inputEl: staleInputEl,
+    close() {
+      closedCount++;
+    },
+  };
+
+  addMobileDismissButton(modal as any);
+
+  return {
+    modal,
+    modalEl,
+    visibleInputEl,
+    staleInputEl,
+    inputContainer,
+    createdEls,
+    dispatchedEvents,
+    getClosedCount: () => closedCount,
+    getFocusedCount: () => focusedCount,
+  };
+}
+
+describe("addMobileDismissButton", () => {
+  const obsidianMock = jest.requireMock("obsidian") as {
+    Platform: { isMobile: boolean };
+  };
+  const originalCreateEl = (globalThis as any).createEl;
+
+  afterEach(() => {
+    obsidianMock.Platform.isMobile = false;
+    (globalThis as any).createEl = originalCreateEl;
+  });
+
+  test("does nothing on desktop", () => {
+    obsidianMock.Platform.isMobile = false;
+    const { modalEl, inputContainer, createdEls } = createDismissFixture();
+    expect(createdEls).toHaveLength(0);
+    expect(modalEl.classes).toHaveLength(0);
+    expect(inputContainer.children).toHaveLength(0);
+  });
+
+  test("adds a dismiss button into the input container on mobile", () => {
+    obsidianMock.Platform.isMobile = true;
+    const { modalEl, inputContainer, createdEls } = createDismissFixture();
+
+    expect(modalEl.classes).toContain(
+      "another-quick-switcher__mobile-dismissable",
+    );
+    expect(createdEls).toHaveLength(1);
+
+    const buttonEl = createdEls[0];
+    // アクセシビリティ確保のため、divでなく本物のbutton要素にする
+    expect(buttonEl.tag).toBe("button");
+    expect(buttonEl.attrs.type).toBe("button");
+    expect(buttonEl.attrs["aria-label"]).toBe("Clear input or dismiss");
+    expect(buttonEl.classes).toContain(
+      "another-quick-switcher__mobile-dismiss-button",
+    );
+    // is-tabletでbutton:not(.clickable-icon)に付く強制paddingを回避する
+    expect(buttonEl.classes).toContain("clickable-icon");
+    expect(buttonEl.htmls).toHaveLength(1); // CROSS icon
+    expect(inputContainer.children).toEqual([buttonEl]);
+    expect(modalEl.children).toHaveLength(0);
+  });
+
+  test("closes the modal when clicked while the input is empty", () => {
+    obsidianMock.Platform.isMobile = true;
+    const { createdEls, dispatchedEvents, getClosedCount } =
+      createDismissFixture({ initialInputValue: "" });
+
+    createdEls[0].listeners.click();
+
+    expect(getClosedCount()).toBe(1);
+    expect(dispatchedEvents).toHaveLength(0);
+  });
+
+  test("clears the input without closing when clicked while the input has a query", () => {
+    obsidianMock.Platform.isMobile = true;
+    const {
+      createdEls,
+      visibleInputEl,
+      staleInputEl,
+      dispatchedEvents,
+      getClosedCount,
+      getFocusedCount,
+    } = createDismissFixture({ initialInputValue: "hoge" });
+
+    createdEls[0].listeners.click();
+
+    expect(getClosedCount()).toBe(0);
+    // 見えているinput(GrepModalではクローン)側が操作される
+    expect(visibleInputEl.value).toBe("");
+    expect(staleInputEl.value).toBe("stale");
+    // 候補リストを再描画させるためinputイベントを発火する
+    expect(dispatchedEvents).toEqual(["input"]);
+    expect(getFocusedCount()).toBe(1);
+  });
+
+  test("clears first and closes on the second click", () => {
+    obsidianMock.Platform.isMobile = true;
+    const { createdEls, visibleInputEl, getClosedCount } = createDismissFixture(
+      {
+        initialInputValue: "hoge",
+      },
+    );
+
+    createdEls[0].listeners.click();
+    expect(visibleInputEl.value).toBe("");
+    expect(getClosedCount()).toBe(0);
+
+    createdEls[0].listeners.click();
+    expect(getClosedCount()).toBe(1);
   });
 });

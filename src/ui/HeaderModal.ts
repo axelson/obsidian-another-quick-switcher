@@ -11,7 +11,7 @@ import {
 } from "../utils/strings";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { PREVIEW } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 interface SuggestionItem {
   value: string;
@@ -44,6 +44,7 @@ export class HeaderModal extends AbstractSuggestionModal<SuggestionItem> {
   constructor(app: App, settings: Settings, floating: boolean) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.limit = 1000;
 

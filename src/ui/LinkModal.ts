@@ -26,7 +26,7 @@ import { toLeafType } from "../utils/mouse";
 import { isExcalidraw, normalizePath } from "../utils/path";
 import { capitalizeFirstLetter, smartIncludes } from "../utils/strings";
 import { FOLDER, PREVIEW } from "./icons";
-import { setFloatingModal } from "./modal";
+import { addMobileDismissButton, setFloatingModal } from "./modal";
 
 interface SuggestionItem {
   order?: number;
@@ -72,6 +72,7 @@ export class LinkModal extends AbstractSuggestionModal<SuggestionItem> {
   constructor(app: App, settings: Settings, initialLeaf: WorkspaceLeaf | null) {
     super(app);
     this.modalEl.addClass("another-quick-switcher__modal-prompt");
+    addMobileDismissButton(this);
 
     this.vaultRootPath = normalizePath(
       (this.app.vault.adapter as any).basePath as string,

@@ -8,6 +8,7 @@ import { microFuzzy } from "src/utils/strings";
 import { now } from "src/utils/times";
 import { isPresent } from "src/utils/types";
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
+import { addMobileDismissButton } from "./modal";
 
 export type HistoricalCommand = Command & {
   lastUsed?: number;
@@ -35,6 +36,7 @@ export class CommandQuickSwitcher extends AbstractSuggestionModal<HistoricalComm
   ) {
     super(app);
     this.app = app as UnsafeApp;
+    addMobileDismissButton(this);
 
     this.setHotkeys();
   }
