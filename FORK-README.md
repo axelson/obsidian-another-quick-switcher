@@ -2,6 +2,20 @@
 
 Personal fork of [obsidian-another-quick-switcher](https://github.com/tadashi-aikawa/obsidian-another-quick-switcher).
 
+## Fork features
+
+### Jax fuzzy match
+
+A new **"Jax fuzzy match"** sort priority with a higher-quality fuzzy scoring algorithm. Unlike the built-in "Fuzzy name match" (which only considers query length and filename length), this algorithm rewards:
+
+- **Word-boundary matches** — matching at the start of a word (after space, `-`, `_`) scores higher than mid-word
+- **Prefix matches** — matching at the very start of the filename gets a large bonus
+- **Earlier match position** — matches near the beginning of the name score higher
+- **Consecutive characters** — longer unbroken runs of matched characters score higher
+- **Gap penalties** — skipped characters between matches reduce the score
+
+This lets a single sort priority replace the combination of "Prefix name match" + "Name match" + "Fuzzy name match". To use it, add "Jax fuzzy match" to your search command's sort priorities in the plugin settings.
+
 ## Development
 
 ### Prerequisites
