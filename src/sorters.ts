@@ -17,6 +17,7 @@ export const sortPriorityList = [
   "Perfect word match",
   "Prefix name match",
   "Fuzzy name match",
+  "Jax fuzzy match",
   "Star",
   "Tag match",
   "Property match",
@@ -111,6 +112,8 @@ function getComparator(
       return priorityToPrefixName;
     case "Fuzzy name match":
       return priorityToFuzzyScore;
+    case "Jax fuzzy match":
+      return priorityToJaxFuzzyScore;
     case "Star":
       return priorityToStar;
     case "Tag match":
@@ -248,7 +251,31 @@ function priorityToFuzzyScore(
   return compare(
     a,
     b,
-    (x) => Math.max(...x.matchResults.map((x) => x.score ?? 0)),
+    (x) =>
+      Math.max(
+        ...x.matchResults
+          .filter((r) => r.type !== "jax-fuzzy-name")
+          .map((r) => r.score ?? 0),
+        0,
+      ),
+    "desc",
+  );
+}
+
+function priorityToJaxFuzzyScore(
+  a: SuggestionItem,
+  b: SuggestionItem,
+): 0 | -1 | 1 {
+  return compare(
+    a,
+    b,
+    (x) =>
+      Math.max(
+        ...x.matchResults
+          .filter((r) => r.type === "jax-fuzzy-name")
+          .map((r) => r.score ?? 0),
+        0,
+      ),
     "desc",
   );
 }

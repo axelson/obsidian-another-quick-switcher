@@ -1,5 +1,6 @@
 import type { TFile } from "obsidian";
 import { minBy, uniqFlatMap } from "./utils/collection-helper";
+import { jaxFuzzy } from "./utils/jax-fuzzy";
 import {
   includesWithRange,
   smartEquals,
@@ -13,6 +14,7 @@ type MatchType =
   | "name"
   | "prefix-name"
   | "fuzzy-name"
+  | "jax-fuzzy-name"
   | "word-perfect"
   | "directory"
   | "header"
@@ -218,6 +220,23 @@ function matchQuery(
           });
         }
       }
+  }
+
+  const jaxFuzzyBasename =
+    item.file.extension === "md" ? item.file.basename : item.file.name;
+  const jaxResult = jaxFuzzy(
+    jaxFuzzyBasename,
+    query,
+    isNormalizeAccentsDiacritics,
+  );
+  if (jaxResult && jaxResult.score > options.minFuzzyScore) {
+    results.push({
+      type: "jax-fuzzy-name",
+      meta: [item.file.name],
+      query,
+      score: jaxResult.score,
+      ranges: jaxResult.ranges,
+    });
   }
 
   const prefixNameMatchedAliases: {
@@ -454,8 +473,13 @@ export function getMatchedTitleAndAliases(item: SuggestionItem): {
 } {
   const matchTitle = item.matchResults.find(
     (x) =>
-      ["word-perfect", "prefix-name", "name", "fuzzy-name"].includes(x.type) &&
-      !x.alias,
+      [
+        "word-perfect",
+        "prefix-name",
+        "name",
+        "fuzzy-name",
+        "jax-fuzzy-name",
+      ].includes(x.type) && !x.alias,
   );
   const displayedAliases = uniqFlatMap(
     item.matchResults.filter((res) => res.alias),
