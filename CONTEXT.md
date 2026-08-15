@@ -43,7 +43,7 @@ The scope a search command searches over: `file`, `opened file`, `backlink`, `li
 _Avoid_: Search scope, source
 
 **Sort priority**:
-One ranking criterion in a search command's ordered list; results are compared by each priority in turn. Custom priorities exist for tags (`#tag`), extensions (`.md`), and properties (`@key:asc|desc`).
+One ranking criterion in a search command's ordered list; results are compared by each priority in turn. Custom priorities exist for tags (`#tag`), extensions (`.md`), properties (`@key:asc|desc`), and path prefixes (`^path/`).
 _Avoid_: Sort order (that is the asc/desc direction of a property priority), ranking rule
 
 **Origin file**:

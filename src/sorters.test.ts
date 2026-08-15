@@ -40,6 +40,61 @@ describe("sort (property value)", () => {
   });
 });
 
+describe("sort (path prefix ^)", () => {
+  test("sorts files matching the prefix above non-matching files", () => {
+    const items = [
+      createItem("Other/note.md"),
+      createItem("Permanent/note.md"),
+    ];
+
+    const sorted = sort([...items], ["^Permanent/"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "Permanent/note.md",
+      "Other/note.md",
+    ]);
+  });
+
+  test("comma-separated prefixes: file matching more prefixes sorts higher", () => {
+    const items = [
+      createItem("Other/note.md"),
+      createItem("Projects/Active/note.md"),
+    ];
+
+    const sorted = sort([...items], ["^Projects/,^Projects/Active/"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "Projects/Active/note.md",
+      "Other/note.md",
+    ]);
+  });
+
+  test("bare prefix without trailing slash matches broader", () => {
+    const items = [
+      createItem("Other/note.md"),
+      createItem("Permanently/note.md"),
+    ];
+
+    const sorted = sort([...items], ["^Permanent"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "Permanently/note.md",
+      "Other/note.md",
+    ]);
+  });
+
+  test("both files in matching prefix returns tie (0)", () => {
+    const items = [createItem("Permanent/a.md"), createItem("Permanent/b.md")];
+
+    const sorted = sort([...items], ["^Permanent/", "Alphabetical"], {});
+
+    expect(sorted.map((item) => item.file.path)).toStrictEqual([
+      "Permanent/a.md",
+      "Permanent/b.md",
+    ]);
+  });
+});
+
 describe("sort (Frequently opened)", () => {
   const withSwitchCount = (
     path: string,

@@ -28,7 +28,8 @@ export type SortPriority =
   | (typeof sortPriorityList)[number]
   | `#${string}`
   | `.${string}`
-  | `@${string}`;
+  | `@${string}`
+  | `^${string}`;
 
 type SortOrder = "asc" | "desc";
 type PropertySortValue = number | string;
@@ -55,6 +56,7 @@ export function regardAsSortPriority(x: string) {
     sortPriorityList.includes(x as any) ||
     x.split(",").every((y) => y.startsWith("#")) ||
     x.split(",").every((y) => y.startsWith(".")) ||
+    x.split(",").every((y) => y.startsWith("^")) ||
     isPropertySortPriority(x)
   );
 }
@@ -76,6 +78,7 @@ export function filterNoQueryPriorities(
       ].includes(x) ||
       x.startsWith("#") ||
       x.startsWith(".") ||
+      x.startsWith("^") ||
       isPropertySortPriority(x),
   );
 }
@@ -139,6 +142,11 @@ function getComparator(
         const extensions = priority.split(",").map((x) => x.slice(1));
         return (a: SuggestionItem, b: SuggestionItem) =>
           priorityToExtensions(a, b, extensions);
+      }
+      if (priority.startsWith("^")) {
+        const prefixes = priority.split(",").map((x) => x.slice(1));
+        return (a: SuggestionItem, b: SuggestionItem) =>
+          priorityToPathPrefix(a, b, prefixes);
       }
       // XXX: xox
       throw new ExhaustiveError(priority as never);
@@ -435,6 +443,19 @@ function priorityToExtensions(
     a,
     b,
     (x) => Number(extensions.contains(x.file.extension)),
+    "desc",
+  );
+}
+
+function priorityToPathPrefix(
+  a: SuggestionItem,
+  b: SuggestionItem,
+  prefixes: string[],
+): 0 | -1 | 1 {
+  return compare(
+    a,
+    b,
+    (x) => prefixes.filter((p) => x.file.path.startsWith(p)).length,
     "desc",
   );
 }
