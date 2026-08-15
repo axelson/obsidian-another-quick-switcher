@@ -3,7 +3,9 @@
 ## Commands
 
 - Test: `bun run test`
+- Test (single file): `bun run test -- --testPathPatterns="<pattern>"`
 - Lint: `bun run lint`
+- Lint fix: `npx biome check --fix <file>`
 - Type check: `bun run typecheck`
 - Build: `bun run build`
 
