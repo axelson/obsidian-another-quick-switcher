@@ -2,7 +2,14 @@
 set -euo pipefail
 
 RELEASE_TAG="fork-latest"
-VERSION="33.$(date +%Y%m%d).0"
+DATE_PART="33.$(date +%Y%m%d)"
+PREV_VERSION=$(gh release view "$RELEASE_TAG" --json tagName,name --jq '.name' --repo axelson/obsidian-another-quick-switcher 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+if [[ "$PREV_VERSION" == "$DATE_PART"* ]]; then
+  PATCH=$(echo "$PREV_VERSION" | cut -d. -f3)
+  VERSION="$DATE_PART.$((PATCH + 1))"
+else
+  VERSION="$DATE_PART.0"
+fi
 BRANCH="$(git branch --show-current)"
 
 echo "Building plugin..."
