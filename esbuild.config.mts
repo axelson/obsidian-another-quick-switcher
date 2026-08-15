@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 import process from "process";
 
-const VAULT_DIR = "/Users/tadashi-aikawa/work/minerva";
+const VAULT_DIR = "/Users/jason/Documents/VaultAxelson";
 const FILES = ["main.js", "manifest.json", "styles.css"];
 
 // ---
