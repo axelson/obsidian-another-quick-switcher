@@ -746,6 +746,63 @@
   width: 100%;
 }
 
+/************************************/
+/* fork: alignment + mobile compact result rows */
+/************************************/
+
+/* Align the folder row's icon with the score row's icon and the title.
+   Upstream indents the directory an extra 0.5rem that the score row lacks;
+   drop it so folder and score share the same left edge (desktop + mobile). */
+.another-quick-switcher__item__directory {
+  padding-left: 0;
+}
+
+/* Mobile: trim the footer. The current note name and the search-mode
+   indicator ("... fuzzy search") just make the bottom section taller on a
+   phone without adding value there. */
+.is-mobile .another-quick-switcher__custom-search__navigation-history-header,
+.is-mobile .another-quick-switcher__status__search-command {
+  display: none;
+}
+
+/* Mobile: compact layout for scored results (the file-name switcher). The
+   folder name and score are moved into a single flex row (built in
+   renderSuggestion) so they stay reliably aligned on one line. Aliases sit on
+   their own line above this row. A long folder name truncates with an ellipsis
+   so the score always stays visible on the right. */
+.is-mobile .another-quick-switcher__item__compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  /* Nudge the folder/score row a hair right of the title for hierarchy */
+  padding-left: 2px;
+}
+.is-mobile
+  .another-quick-switcher__item__compact-row
+  .another-quick-switcher__item__directory {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-left: 0;
+}
+.is-mobile
+  .another-quick-switcher__item__compact-row
+  .another-quick-switcher__item__directory
+  svg {
+  vertical-align: middle;
+}
+.is-mobile
+  .another-quick-switcher__item__compact-row
+  .another-quick-switcher__item__metas {
+  flex: 0 0 auto;
+  padding-top: 0;
+  white-space: nowrap;
+}
+
 /* Clear-or-dismiss button at the left edge of the input, shown only on
    mobile (issue #331). Anchored to .prompt-input-container, which is
    position: relative in Obsidian core. Sits at the bottom because the input

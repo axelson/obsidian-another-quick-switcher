@@ -778,3 +778,37 @@ export function createElements(
 
   return { itemDiv, metaDiv, descriptionDiv };
 }
+
+/**
+ * Rearranges an already-built item into the mobile-compact layout: the aliases
+ * (description block) move directly under the title, and the folder name and
+ * fuzzy score are grouped into a single row so they stay aligned on one line.
+ * Building the row here (rather than relying on CSS wrapping/grid) keeps the
+ * layout deterministic no matter which optional parts the item happens to have.
+ *
+ * Mutates `itemDiv` in place; the final child order is:
+ *   title, aliases, [folder + score].
+ */
+export function layoutMobileCompactItem(
+  itemDiv: HTMLElement,
+  metaDiv: HTMLDivElement | undefined,
+  descriptionDiv: HTMLDivElement | undefined,
+): void {
+  if (descriptionDiv?.hasChildNodes()) {
+    itemDiv.appendChild(descriptionDiv);
+  }
+
+  const compactRow = createDiv({
+    cls: "another-quick-switcher__item__compact-row",
+  });
+  const directoryDiv = itemDiv.querySelector<HTMLElement>(
+    ".another-quick-switcher__item__directory",
+  );
+  if (directoryDiv) {
+    compactRow.appendChild(directoryDiv);
+  }
+  if (metaDiv?.hasChildNodes()) {
+    compactRow.appendChild(metaDiv);
+  }
+  itemDiv.appendChild(compactRow);
+}

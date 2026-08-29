@@ -2,13 +2,13 @@ import { describe, expect, test } from "@jest/globals";
 import type { MatchQueryResult, SuggestionItem } from "../matcher";
 import { createSuggestionItem as createItem } from "../test-helpers/suggestion-item";
 import { ALIAS, FILE } from "./icons";
-import { createElements } from "./suggestion-factory";
+import { createElements, layoutMobileCompactItem } from "./suggestion-factory";
 import {
   findAllByClass,
   findByClass,
   htmlNodesOf,
   installObsidianDomStubs,
-  type StubElement,
+  StubElement,
 } from "./test-helpers/obsidian-dom-stub";
 
 installObsidianDomStubs();
@@ -548,5 +548,95 @@ describe("createElements: 相対更新期間", () => {
     expect(
       findByClass(noValueDiv, "another-quick-switcher__item__relative-age"),
     ).toBeNull();
+  });
+});
+
+describe("layoutMobileCompactItem", () => {
+  const directChildClasses = (el: StubElement) =>
+    el.children
+      .filter((c): c is StubElement => c instanceof StubElement)
+      .map((c) => c.classes[0]);
+
+  const compactOptions = options({
+    showDirectory: true,
+    showDirectoryAtNewLine: true,
+    showFuzzyMatchScore: true,
+  });
+
+  test("エイリアスをタイトル直下へ、フォルダとスコアを1行にまとめる", () => {
+    const { itemDiv, metaDiv, descriptionDiv } = elementsOf(
+      createItem({
+        aliases: ["nikki"],
+        matchResults: [
+          { type: "jax-fuzzy-name", query: "d", score: 7.52, ranges: [] },
+          { type: "fuzzy-name", query: "d", score: 2.68, ranges: [] },
+          {
+            type: "name",
+            alias: "nikki",
+            query: "nik",
+            meta: ["nikki"],
+            score: 5,
+            allAliasRanges: [
+              { alias: "nikki", ranges: [{ start: 0, end: 2 }] },
+            ],
+          },
+        ],
+      }),
+      compactOptions,
+    );
+
+    layoutMobileCompactItem(
+      itemDiv as any,
+      metaDiv as any,
+      descriptionDiv as any,
+    );
+
+    // 直下の並びは タイトル → エイリアス → フォルダ/スコア行
+    expect(directChildClasses(itemDiv)).toEqual([
+      "another-quick-switcher__item__entry",
+      "another-quick-switcher__item__descriptions",
+      "another-quick-switcher__item__compact-row",
+    ]);
+
+    // フォルダとスコアは同じ行(compact-row)に入る
+    const compactRow = findByClass(
+      itemDiv,
+      "another-quick-switcher__item__compact-row",
+    )!;
+    expect(directChildClasses(compactRow)).toEqual([
+      "another-quick-switcher__item__directory",
+      "another-quick-switcher__item__metas",
+    ]);
+  });
+
+  test("エイリアスが無い場合はタイトル → フォルダ/スコア行になる", () => {
+    const { itemDiv, metaDiv, descriptionDiv } = elementsOf(
+      createItem({
+        matchResults: [
+          { type: "jax-fuzzy-name", query: "d", score: 7.52, ranges: [] },
+        ],
+      }),
+      compactOptions,
+    );
+    expect(descriptionDiv).toBeUndefined();
+
+    layoutMobileCompactItem(
+      itemDiv as any,
+      metaDiv as any,
+      descriptionDiv as any,
+    );
+
+    expect(directChildClasses(itemDiv)).toEqual([
+      "another-quick-switcher__item__entry",
+      "another-quick-switcher__item__compact-row",
+    ]);
+    const compactRow = findByClass(
+      itemDiv,
+      "another-quick-switcher__item__compact-row",
+    )!;
+    expect(directChildClasses(compactRow)).toEqual([
+      "another-quick-switcher__item__directory",
+      "another-quick-switcher__item__metas",
+    ]);
   });
 });

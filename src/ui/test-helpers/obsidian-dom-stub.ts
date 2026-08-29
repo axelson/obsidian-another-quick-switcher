@@ -92,6 +92,18 @@ export class StubElement {
     return this.classes.includes(cls);
   }
 
+  hasChildNodes(): boolean {
+    return this.children.length > 0;
+  }
+
+  /** 単純な ".class" セレクタのみ対応した querySelector 相当 */
+  querySelector(selector: string): StubElement | null {
+    if (!selector.startsWith(".")) {
+      throw new Error(`Unsupported selector in stub: ${selector}`);
+    }
+    return findByClass(this, selector.slice(1));
+  }
+
   /** テキストノードのみを連結したテキスト(HTML断片は含まない) */
   get textContent(): string {
     return this.children

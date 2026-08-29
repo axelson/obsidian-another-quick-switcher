@@ -64,7 +64,7 @@ import {
 import { AbstractSuggestionModal } from "./AbstractSuggestionModal";
 import { FILTER, HEADER, LINK, PREVIEW, SEARCH, TAG } from "./icons";
 import { addMobileDismissButton, setFloatingModal } from "./modal";
-import { createElements } from "./suggestion-factory";
+import { createElements, layoutMobileCompactItem } from "./suggestion-factory";
 
 const globalInternalStorage: {
   query: string;
@@ -778,11 +778,20 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
       selected: Boolean(this.selectedItemMap[this.toKey(item)]),
     });
 
-    if (metaDiv?.hasChildNodes()) {
-      itemDiv.appendChild(metaDiv);
-    }
-    if (descriptionDiv?.hasChildNodes()) {
-      itemDiv.appendChild(descriptionDiv);
+    const hasScore = Boolean(
+      metaDiv?.querySelector(".another-quick-switcher__item__meta__score"),
+    );
+    if (Platform.isMobile && hasScore) {
+      // Compact mobile layout: title, then aliases on their own line, then the
+      // folder and score together on one aligned row.
+      layoutMobileCompactItem(itemDiv, metaDiv, descriptionDiv);
+    } else {
+      if (metaDiv?.hasChildNodes()) {
+        itemDiv.appendChild(metaDiv);
+      }
+      if (descriptionDiv?.hasChildNodes()) {
+        itemDiv.appendChild(descriptionDiv);
+      }
     }
     el.appendChild(itemDiv);
   }

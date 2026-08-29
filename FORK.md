@@ -38,3 +38,20 @@ silently mixed the two scales and hid which scorer was in effect.
 
 The non-md attachment demotion lives in `src/matcher.ts` (`JAX_NON_MD_PENALTY`), applied to
 the jax score after the visibility threshold so attachments still appear, just lower.
+
+## Mobile compact view
+
+On mobile (`Platform.isMobile`), the switcher is tightened to fit more results above the
+keyboard:
+
+- **Trimmed footer** — the current-note-name header and the search-mode indicator
+  ("… fuzzy search") are hidden via `.is-mobile` rules in `styles.css`.
+- **Compact scored results** — for items that show a fuzzy score, each result is laid out as
+  three rows: title, then any aliases on their own line, then the folder name and score
+  together on one row. The folder truncates with an ellipsis so the score stays visible.
+
+The folder+score row is built explicitly in `renderSuggestion`
+(`layoutMobileCompactItem` in `src/ui/suggestion-factory.ts`) rather than via CSS wrapping,
+because CSS-only wrapping/grid was unpredictable across the scored item's variable children.
+The row itself is a simple flexbox (`another-quick-switcher__item__compact-row`). Desktop
+rendering is unchanged (the non-mobile branch is the original assembly).
