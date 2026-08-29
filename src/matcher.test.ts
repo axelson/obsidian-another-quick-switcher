@@ -152,3 +152,24 @@ describe("empty key (@:value, @:)", () => {
     expect(result.matchResults[0].type).toBe("not found");
   });
 });
+
+describe("jax-fuzzy extension penalty", () => {
+  const jaxScoreOf = (item: SuggestionItem): number => {
+    const result = stampMatchResults(item, ["network"], defaultOptions);
+    return (
+      result.matchResults.find((r) => r.type === "jax-fuzzy-name")?.score ?? 0
+    );
+  };
+
+  test("non-md files are penalized by exactly the extension penalty (2)", () => {
+    // Both are scored on the identical jax text "Network.png":
+    // - "Network.png"    (png)  -> jaxFuzzy(name = "Network.png")
+    // - "Network.png.md" (md)   -> jaxFuzzy(basename = "Network.png")
+    // so the only difference between them is the non-md penalty.
+    const png = jaxScoreOf(createItem("Network.png"));
+    const mdSameText = jaxScoreOf(createItem("Network.png.md"));
+
+    expect(png).toBeGreaterThan(0);
+    expect(mdSameText - png).toBeCloseTo(2, 5);
+  });
+});

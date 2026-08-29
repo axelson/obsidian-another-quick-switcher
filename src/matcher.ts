@@ -9,6 +9,9 @@ import {
 } from "./utils/strings";
 import type { FrontmatterProperty } from "./utils/types";
 
+// Amount subtracted from a non-md file's jax-fuzzy score to demote attachments.
+const JAX_NON_MD_PENALTY = 2;
+
 type MatchType =
   | "not found"
   | "name"
@@ -230,11 +233,17 @@ function matchQuery(
     isNormalizeAccentsDiacritics,
   );
   if (jaxResult && jaxResult.score > options.minFuzzyScore) {
+    // Non-md files (attachments) are rarely direct switch targets, so demote
+    // them. Applied after the visibility threshold so they still appear.
+    const penalizedScore =
+      item.file.extension === "md"
+        ? jaxResult.score
+        : Math.max(0, jaxResult.score - JAX_NON_MD_PENALTY);
     results.push({
       type: "jax-fuzzy-name",
       meta: [item.file.name],
       query,
-      score: jaxResult.score,
+      score: penalizedScore,
       ranges: jaxResult.ranges,
     });
   }

@@ -48,6 +48,38 @@ describe("jaxFuzzy scoring correctness", () => {
   });
 });
 
+describe("jaxFuzzy scoring: fork tuning", () => {
+  test("complete-word match scores higher than a longer word with the same prefix", () => {
+    // "Net" is a whole word vs a prefix of "Nether" — same position.
+    const complete = jaxFuzzy("Home Net", "net", false);
+    const partial = jaxFuzzy("Home Nether", "net", false);
+
+    expect(complete).not.toBeNull();
+    expect(partial).not.toBeNull();
+    expect(complete!.score).toBeGreaterThan(partial!.score);
+  });
+
+  test("complete word 'Network' outranks partial 'Networking'", () => {
+    const complete = jaxFuzzy("YHT 701 Network", "network", false);
+    const partial = jaxFuzzy("Linux Networking", "network", false);
+
+    expect(complete).not.toBeNull();
+    expect(partial).not.toBeNull();
+    expect(complete!.score).toBeGreaterThan(partial!.score);
+  });
+
+  test("a longer title does not out-score a shorter one for the same match position", () => {
+    // "network" starts at the same absolute position (4) in both; the only
+    // difference is total length. Position bonus must not reward the longer one.
+    const short = jaxFuzzy("foo network", "network", false);
+    const long = jaxFuzzy("foo network aaaaaaaaaaaaaaaaaaaa", "network", false);
+
+    expect(short).not.toBeNull();
+    expect(long).not.toBeNull();
+    expect(short!.score).toBeGreaterThanOrEqual(long!.score);
+  });
+});
+
 describe("jaxFuzzy backward tightening", () => {
   test("prefers consecutive pair over spread match", () => {
     const result = jaxFuzzy("a___ab", "ab", false);

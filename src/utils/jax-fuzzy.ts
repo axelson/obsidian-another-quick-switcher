@@ -11,7 +11,16 @@ const SCORE_BASE = 1;
 const BONUS_CONSECUTIVE = 4;
 const BONUS_FIRST_CHAR = 8;
 const BONUS_BOUNDARY = 6;
-const BONUS_POSITION_MAX = 3;
+const BONUS_POSITION_MAX = 4;
+// Absolute-position falloff: the position bonus is full at the start of the
+// text and fades to 0 by this many characters in. Unlike a length-normalized
+// bonus, this does not reward a longer filename for the same match position.
+const POSITION_FALLOFF = 8;
+// A matched run bounded by separators/edges on both sides is a whole word
+// (e.g. "Network"), which is preferred over a partial match ("Networking").
+const BONUS_COMPLETE_WORD = 6;
+// Gentle tiebreaker preferring shorter titles.
+const PENALTY_LENGTH = 0.02;
 const PENALTY_GAP_START = -2;
 const PENALTY_GAP_EXTENSION = -1;
 
@@ -74,7 +83,7 @@ function scoreAlignment(
       total += BONUS_CONSECUTIVE;
     }
 
-    total += BONUS_POSITION_MAX * (1 - pos / textLen);
+    total += BONUS_POSITION_MAX * Math.max(0, 1 - pos / POSITION_FALLOFF);
 
     if (i > 0 && prevMatchPos !== pos - 1) {
       const gapSize = pos - prevMatchPos - 1;
@@ -83,6 +92,20 @@ function scoreAlignment(
 
     prevMatchPos = pos;
   }
+
+  // Whole-word bonus: the matched characters form one contiguous run that is
+  // bounded by a separator (or the text edge) on both sides.
+  const start = matchPositions[0];
+  const end = matchPositions[matchPositions.length - 1];
+  const contiguous = end - start === matchPositions.length - 1;
+  const boundedLeft = start === 0 || isSeparator(text[start - 1]);
+  const boundedRight = end === textLen - 1 || isSeparator(text[end + 1]);
+  if (contiguous && boundedLeft && boundedRight) {
+    total += BONUS_COMPLETE_WORD;
+  }
+
+  // Gentle preference for shorter titles.
+  total -= PENALTY_LENGTH * textLen;
 
   return total;
 }
