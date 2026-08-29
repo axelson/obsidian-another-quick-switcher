@@ -771,6 +771,7 @@ export class AnotherQuickSwitcherModal extends AbstractSuggestionModal<Suggestio
       displayDescriptionBelowTitle: this.settings.displayDescriptionBelowTitle,
       hideGutterIcons: this.settings.hideGutterIcons,
       showFuzzyMatchScore: this.settings.showFuzzyMatchScore,
+      sortPriorities: this.command.sortPriorities,
       relativeUpdatedPeriodSource: this.command.relativeUpdatedPeriodSource,
       relativeUpdatedPeriodPropertyKey:
         this.command.relativeUpdatedPeriodPropertyKey,

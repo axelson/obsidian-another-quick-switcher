@@ -1,5 +1,6 @@
 import { ExhaustiveError } from "src/errors";
 import type { RelativeUpdatedPeriodSource } from "src/settings";
+import type { SortPriority } from "src/sorters";
 import { isExcalidraw } from "src/utils/path";
 import {
   formatRelativeUpdatedPeriod,
@@ -40,6 +41,7 @@ interface Options {
   selected: boolean;
   relativeUpdatedPeriodSource: RelativeUpdatedPeriodSource;
   relativeUpdatedPeriodPropertyKey?: string;
+  sortPriorities: SortPriority[];
 }
 
 function parseFrontMatterDate(
@@ -379,7 +381,8 @@ function createMetaDiv(args: {
   frontMatterRanges?: {
     [key: string]: Array<{ start: number; end: number }>[];
   };
-  score: number;
+  jaxScore: number;
+  microScore: number;
   options: Options;
 }): Elements["metaDiv"] {
   const { frontMatter, options, frontMatterRanges } = args;
@@ -405,7 +408,10 @@ function createMetaDiv(args: {
     metaDiv.appendChild(descriptionDiv);
   }
 
-  if (options.showFuzzyMatchScore && args.score > 0) {
+  if (
+    options.showFuzzyMatchScore &&
+    (args.jaxScore > 0 || args.microScore > 0)
+  ) {
     const scoreDiv = createDiv({
       cls: "another-quick-switcher__item__meta",
     });
@@ -413,7 +419,32 @@ function createMetaDiv(args: {
       cls: "another-quick-switcher__item__meta__score",
     });
     scoreSpan.insertAdjacentHTML("beforeend", SCORE);
-    scoreSpan.appendText(String(args.score));
+
+    // A score is "active" when its matching sort priority is configured,
+    // i.e. it actually drives the current ordering. Others are shown muted.
+    const jaxActive = options.sortPriorities.includes("Jax fuzzy match");
+    const microActive = options.sortPriorities.includes("Fuzzy name match");
+
+    const appendValue = (label: string, value: number, active: boolean) => {
+      const valueSpan = createSpan({
+        cls: [
+          "another-quick-switcher__item__meta__score__value",
+          active
+            ? "another-quick-switcher__item__meta__score__value--active"
+            : "another-quick-switcher__item__meta__score__value--muted",
+        ],
+      });
+      valueSpan.appendText(`${label} ${value}`);
+      scoreSpan.appendChild(valueSpan);
+    };
+
+    if (args.jaxScore > 0) {
+      appendValue("jax", args.jaxScore, jaxActive);
+    }
+    if (args.microScore > 0) {
+      appendValue("micro", args.microScore, microActive);
+    }
+
     scoreDiv.appendChild(scoreSpan);
     metaDiv.appendChild(scoreDiv);
   }
@@ -646,9 +677,25 @@ export function createElements(
     (key, value) =>
       options.excludeFrontMatterKeys.includes(key) || value == null,
   );
-  const maxScore = round(
-    Math.max(...item.matchResults.map((a) => a.score ?? 0)),
-    6,
+  // Keep the two scorers separate instead of collapsing them into one max():
+  // "jax" is the fork's jaxFuzzy score, "micro" is the upstream microFuzzy score.
+  const jaxScore = round(
+    Math.max(
+      0,
+      ...item.matchResults
+        .filter((r) => r.type === "jax-fuzzy-name")
+        .map((r) => r.score ?? 0),
+    ),
+    2,
+  );
+  const microScore = round(
+    Math.max(
+      0,
+      ...item.matchResults
+        .filter((r) => r.type !== "jax-fuzzy-name")
+        .map((r) => r.score ?? 0),
+    ),
+    2,
   );
 
   /**
@@ -685,11 +732,12 @@ export function createElements(
     );
 
   const metaDiv =
-    Object.keys(frontMatter).length > 0 || maxScore > 0
+    Object.keys(frontMatter).length > 0 || jaxScore > 0 || microScore > 0
       ? createMetaDiv({
           frontMatter,
           frontMatterRanges,
-          score: maxScore,
+          jaxScore,
+          microScore,
           options,
         })
       : undefined;

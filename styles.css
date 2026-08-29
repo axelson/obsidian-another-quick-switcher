@@ -426,6 +426,23 @@
   margin-right: 5px;
 }
 
+.another-quick-switcher__item__meta__score__value {
+  margin-left: 5px;
+}
+
+/* Score whose sort priority is configured (drives the current ordering) */
+.another-quick-switcher__item__meta__score__value--active {
+  /*noinspection CssUnresolvedCustomProperty*/
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+/* Score shown for reference only; not used by the current sort priorities */
+.another-quick-switcher__item__meta__score__value--muted {
+  /*noinspection CssUnresolvedCustomProperty*/
+  color: var(--text-faint);
+}
+
 .another-quick-switcher__item__descriptions {
   padding-top: 0.5rem;
 }

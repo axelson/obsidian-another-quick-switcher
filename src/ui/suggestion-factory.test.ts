@@ -29,6 +29,7 @@ const defaultOptions = {
   selected: false,
   relativeUpdatedPeriodSource: "none",
   relativeUpdatedPeriodPropertyKey: undefined,
+  sortPriorities: [],
 } as const;
 
 function options(
@@ -276,21 +277,63 @@ describe("createElements: エイリアス表示", () => {
 });
 
 describe("createElements: metaDiv", () => {
-  test("showFuzzyMatchScoreで最大スコアが小数6桁に丸めて表示される", () => {
+  const scoreValuesOf = (metaDiv: StubElement) =>
+    findAllByClass(metaDiv, "another-quick-switcher__item__meta__score__value");
+
+  test("showFuzzyMatchScoreでjaxとmicroのスコアがラベル付き2桁で表示される", () => {
     const { metaDiv } = elementsOf(
       createItem({
         matchResults: [
-          { type: "fuzzy-name", query: "d", score: 12.3456789, ranges: [] },
+          { type: "jax-fuzzy-name", query: "d", score: 7.52411, ranges: [] },
+          { type: "fuzzy-name", query: "d", score: 2.6789, ranges: [] },
           { type: "fuzzy-name", query: "i", score: 1, ranges: [] },
         ],
       }),
       options({ showFuzzyMatchScore: true }),
     );
 
+    expect(scoreValuesOf(metaDiv!).map((x) => x.textContent)).toEqual([
+      "jax 7.52",
+      "micro 2.68",
+    ]);
+  });
+
+  test("スコアが0のスコアラベルは表示されない", () => {
+    const { metaDiv } = elementsOf(
+      createItem({
+        matchResults: [
+          { type: "fuzzy-name", query: "d", score: 2.6789, ranges: [] },
+        ],
+      }),
+      options({ showFuzzyMatchScore: true }),
+    );
+
+    expect(scoreValuesOf(metaDiv!).map((x) => x.textContent)).toEqual([
+      "micro 2.68",
+    ]);
+  });
+
+  test("sortPrioritiesに含まれるスコアはactive、含まれないスコアはmutedになる", () => {
+    const { metaDiv } = elementsOf(
+      createItem({
+        matchResults: [
+          { type: "jax-fuzzy-name", query: "d", score: 7.52, ranges: [] },
+          { type: "fuzzy-name", query: "d", score: 2.67, ranges: [] },
+        ],
+      }),
+      options({
+        showFuzzyMatchScore: true,
+        sortPriorities: ["Jax fuzzy match"],
+      }),
+    );
+
+    const [jax, micro] = scoreValuesOf(metaDiv!);
     expect(
-      findByClass(metaDiv!, "another-quick-switcher__item__meta__score")
-        ?.textContent,
-    ).toBe("12.345679");
+      jax.hasClass("another-quick-switcher__item__meta__score__value--active"),
+    ).toBe(true);
+    expect(
+      micro.hasClass("another-quick-switcher__item__meta__score__value--muted"),
+    ).toBe(true);
   });
 
   test("showFrontMatterでプロパティが表示され、excludeFrontMatterKeysは除外される", () => {
